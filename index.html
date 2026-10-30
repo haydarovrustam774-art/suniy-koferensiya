@@ -1,99 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Konferensiya Ro'yxati</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Konferensiya Ishtirokchilari</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #e9ecef; display: flex; justify-content: center; padding: 30px; margin: 0; }
-    .card { background: white; padding: 25px 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
-    h2 { color: #2c3e50; text-align: center; margin-top: 0; }
-    label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; font-size: 14px; }
-    input, select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ced4da; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
-    input:focus, select:focus { border-color: #3498db; outline: none; }
-    button { background: #3498db; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
-    button:hover { background: #2980b9; }
-    button:disabled { background: #95a5a6; cursor: not-allowed; }
-    #status { margin-top: 15px; text-align: center; font-weight: bold; font-size: 14px; }
+    /* Umumiy fon va 3D muhit */
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white;
+      min-height: 100vh;
+    }
+    h1 {
+      text-align: center;
+      font-size: 3em;
+      margin-bottom: 50px;
+      text-shadow: 2px 4px 10px rgba(0,0,0,0.3);
+    }
+    
+    /* Loader (Kutish oynasi) */
+    #loader { text-align: center; font-size: 1.5em; font-weight: bold; }
+
+    /* Kartochkalar uchun Grid tizimi */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+      perspective: 1000px; /* 3D effekt uchun asosiy muhit */
+    }
+
+    /* 3D Kartochka dizayni (Glassmorphism) */
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      transition: transform 0.5s ease, box-shadow 0.5s ease;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+
+    /* 3D Hover effekti - Sishqoncha borganda qiyshayib oldinga chiqadi */
+    .card:hover {
+      transform: translateZ(30px) rotateX(10deg) rotateY(-10deg);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    /* Kartochka ichidagi matnlar 3D bo'lib bo'rtib chiqishi uchun */
+    .card-content {
+      transform: translateZ(40px); /* Matnni kartadan yuqoriga ko'tarish */
+    }
+
+    .fish { font-size: 1.5em; font-weight: bold; color: #ffdf00; margin: 0 0 10px 0; }
+    .guruh { font-size: 1.1em; color: #a8c0ff; margin: 5px 0; }
+    .mavzu { font-size: 1.2em; margin: 15px 0; font-style: italic; line-height: 1.4; }
+    .yonalish {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>Konferensiya Ro'yxati</h2>
-    <form id="regForm" onsubmit="yuborish(event)">
-      
-      <label>F.I.Sh:</label>
-      <input type="text" id="fish" placeholder="To'liq ism-sharifingiz" required>
-
-      <label>Guruh yoki Kursingiz:</label>
-      <input type="text" id="guruh" placeholder="Masalan: DI-24-1" required>
-
-      <label>Ma'ruza mavzusi:</label>
-      <input type="text" id="mavzu" placeholder="Ilmiy ishingiz mavzusi" required>
-
-      <label>Yo'nalish:</label>
-      <select id="yonalish" required>
-        <option value="">Yuklanmoqda...</option>
-      </select>
-
-      <label>Telefon / Email:</label>
-      <input type="text" id="aloqa" placeholder="+998901234567" required>
-
-      <button type="submit" id="btn">Saqlash</button>
-    </form>
-    <div id="status"></div>
-  </div>
+  <h1>Konferensiya Ishtirokchilari</h1>
+  <div id="loader">Ma'lumotlar bazadan yuklanmoqda...</div>
+  <div class="grid-container" id="ishtirokchilar-royxati"></div>
 
   <script>
-    // Sizning Google Apps Script API havolangiz
+    // GOOGLE APPS SCRIPT HAVOLASINI SHU YERGA QO'YING:
     const API_URL = "https://script.google.com/macros/s/AKfycbwcbD0ki7qJwgbm3GMl-_UJVX6UCOD7pKBPqhpsP_64jB0vLjokb4DJZVMn2VjCArAM/exec";
 
-    // Sahifa ochilganda Yo'nalishlarni bazadan yuklash (GET so'rovi)
-    window.onload = function() {
-      document.getElementById("status").innerHTML = "Baza bilan ulanmoqda...";
-      fetch(API_URL)
-        .then(res => res.json())
-        .then(data => {
-          let select = document.getElementById("yonalish");
-          select.innerHTML = '<option value="">-- Yo\'nalishni tanlang --</option>';
-          data.forEach(y => select.innerHTML += `<option value="${y}">${y}</option>`);
-          document.getElementById("status").innerHTML = "";
-        })
-        .catch(err => {
-          document.getElementById("status").innerHTML = `<span style="color:red">Bazaga ulanishda xatolik.</span>`;
+    // Sahifa yuklanganda ma'lumotlarni tortib kelish
+    fetch(API_URL)
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('loader').style.display = 'none'; // Loaderni yashirish
+        const container = document.getElementById('ishtirokchilar-royxati');
+        
+        // Agar baza bo'sh bo'lsa
+        if(data.length === 0) {
+          container.innerHTML = "<h3>Hozircha ishtirokchilar yo'q.</h3>";
+          return;
+        }
+
+        // Har bir ishtirokchi uchun 3D kartochka yaratish
+        data.reverse().forEach(ishtirokchi => {
+          // data.reverse() eng oxirgi ro'yxatdan o'tganlarni birinchi ko'rsatadi
+          const cardHTML = `
+            <div class="card">
+              <div class="card-content">
+                <h2 class="fish">${ishtirokchi.fish}</h2>
+                <p class="guruh">🎓 Guruh: ${ishtirokchi.guruh}</p>
+                <p class="mavzu">📝 Mavzu: "${ishtirokchi.mavzu}"</p>
+                <span class="yonalish">📌 ${ishtirokchi.yonalish}</span>
+              </div>
+            </div>
+          `;
+          container.innerHTML += cardHTML;
         });
-    };
-
-    // Ma'lumotlarni saqlash (POST so'rovi)
-    function yuborish(e) {
-      e.preventDefault();
-      document.getElementById("btn").disabled = true;
-      document.getElementById("status").innerHTML = `<span style="color:blue">Saqlanmoqda...</span>`;
-      
-      let dataObj = {
-        fish: document.getElementById("fish").value,
-        guruh: document.getElementById("guruh").value,
-        mavzu: document.getElementById("mavzu").value,
-        yonalish: document.getElementById("yonalish").value,
-        aloqa: document.getElementById("aloqa").value
-      };
-
-      fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify(dataObj)
       })
-      .then(res => res.json())
-      .then(natija => {
-        document.getElementById("status").innerHTML = `<span style="color:green">${natija.status}</span>`;
-        document.getElementById("regForm").reset();
-        document.getElementById("btn").disabled = false;
-      })
-      .catch(err => {
-        document.getElementById("status").innerHTML = `<span style="color:red">Xatolik yuz berdi. Iltimos qayta urinib ko'ring.</span>`;
-        document.getElementById("btn").disabled = false;
+      .catch(error => {
+        document.getElementById('loader').innerHTML = "Xatolik yuz berdi. Internetni yoki API havolani tekshiring.";
       });
-    }
   </script>
 
 </body>
