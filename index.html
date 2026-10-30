@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Konferensiya Ro'yxati</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #e9ecef; display: flex; justify-content: center; padding: 30px; margin: 0; }
+    .card { background: white; padding: 25px 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+    h2 { color: #2c3e50; text-align: center; margin-top: 0; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; font-size: 14px; }
+    input, select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ced4da; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+    input:focus, select:focus { border-color: #3498db; outline: none; }
+    button { background: #3498db; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
+    button:hover { background: #2980b9; }
+    button:disabled { background: #95a5a6; cursor: not-allowed; }
+    #status { margin-top: 15px; text-align: center; font-weight: bold; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Konferensiya Ro'yxati</h2>
+    <form id="regForm" onsubmit="yuborish(event)">
+      
+      <label>F.I.Sh:</label>
+      <input type="text" id="fish" placeholder="To'liq ism-sharifingiz" required>
+
+      <label>Guruh yoki Kursingiz:</label>
+      <input type="text" id="guruh" placeholder="Masalan: DI-24-1" required>
+
+      <label>Ma'ruza mavzusi:</label>
+      <input type="text" id="mavzu" placeholder="Ilmiy ishingiz mavzusi" required>
+
+      <label>Yo'nalish:</label>
+      <select id="yonalish" required>
+        <option value="">Yuklanmoqda...</option>
+      </select>
+
+      <label>Telefon / Email:</label>
+      <input type="text" id="aloqa" placeholder="+998901234567" required>
+
+      <button type="submit" id="btn">Saqlash</button>
+    </form>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    // Sizning Google Apps Script API havolangiz
+    const API_URL = "https://script.google.com/macros/s/AKfycbwcbD0ki7qJwgbm3GMl-_UJVX6UCOD7pKBPqhpsP_64jB0vLjokb4DJZVMn2VjCArAM/exec";
+
+    // Sahifa ochilganda Yo'nalishlarni bazadan yuklash (GET so'rovi)
+    window.onload = function() {
+      document.getElementById("status").innerHTML = "Baza bilan ulanmoqda...";
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          let select = document.getElementById("yonalish");
+          select.innerHTML = '<option value="">-- Yo\'nalishni tanlang --</option>';
+          data.forEach(y => select.innerHTML += `<option value="${y}">${y}</option>`);
+          document.getElementById("status").innerHTML = "";
+        })
+        .catch(err => {
+          document.getElementById("status").innerHTML = `<span style="color:red">Bazaga ulanishda xatolik.</span>`;
+        });
+    };
+
+    // Ma'lumotlarni saqlash (POST so'rovi)
+    function yuborish(e) {
+      e.preventDefault();
+      document.getElementById("btn").disabled = true;
+      document.getElementById("status").innerHTML = `<span style="color:blue">Saqlanmoqda...</span>`;
+      
+      let dataObj = {
+        fish: document.getElementById("fish").value,
+        guruh: document.getElementById("guruh").value,
+        mavzu: document.getElementById("mavzu").value,
+        yonalish: document.getElementById("yonalish").value,
+        aloqa: document.getElementById("aloqa").value
+      };
+
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify(dataObj)
+      })
+      .then(res => res.json())
+      .then(natija => {
+        document.getElementById("status").innerHTML = `<span style="color:green">${natija.status}</span>`;
+        document.getElementById("regForm").reset();
+        document.getElementById("btn").disabled = false;
+      })
+      .catch(err => {
+        document.getElementById("status").innerHTML = `<span style="color:red">Xatolik yuz berdi. Iltimos qayta urinib ko'ring.</span>`;
+        document.getElementById("btn").disabled = false;
+      });
+    }
+  </script>
+
+</body>
+</html>
