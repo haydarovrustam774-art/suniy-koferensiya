@@ -78,9 +78,9 @@
     .badge-container { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
     .shoba { background: rgba(3, 169, 244, 0.2); border: 1px solid rgba(3, 169, 244, 0.5); padding: 6px 12px; border-radius: 20px; font-size: 0.85em; color: #81d4fa; }
     
-    .tolov { padding: 6px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold; }
-    .tolangan { background: rgba(76, 175, 80, 0.2); border: 1px solid rgba(76, 175, 80, 0.5); color: #69f0ae; }
-    .tolanmagan { background: rgba(244, 67, 54, 0.2); border: 1px solid rgba(244, 67, 54, 0.5); color: #ff5252; }
+    .holat { padding: 6px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold; }
+    .qabul-qilingan { background: rgba(76, 175, 80, 0.2); border: 1px solid rgba(76, 175, 80, 0.5); color: #69f0ae; }
+    .qabul-qilinmagan { background: rgba(244, 67, 54, 0.2); border: 1px solid rgba(244, 67, 54, 0.5); color: #ff5252; }
 
     .sana { font-size: 0.8em; color: #9e9e9e; display: block; margin-top: 15px; text-align: right; }
   </style>
@@ -98,7 +98,7 @@
   <div class="grid-container" id="maqolalar-royxati"></div>
 
   <script>
-     const API_URL = "https://script.google.com/macros/s/AKfycbyGrVda2fyrRe4ldrVkhD3TlYNyvxITSD0zrPoQE2rVLf4JJ1IhxoJmNOsnRuNkA9Th/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyGrVda2fyrRe4ldrVkhD3TlYNyvxITSD0zrPoQE2rVLf4JJ1IhxoJmNOsnRuNkA9Th/exec";
 
     fetch(API_URL)
       .then(response => response.json())
@@ -113,13 +113,14 @@
         }
 
         let jamiMaqolalar = data.length;
-        let tolanganSoni = 0;
+        let qabulQilinganSoni = 0;
         let shobaTaqsimoti = {};
 
         data.forEach(item => {
-          let tolovMatni = item.tolov ? item.tolov.toString().trim().toLowerCase() : "";
-          if (tolovMatni === "to'langan") {
-            tolanganSoni++;
+          let holatMatni = item.tolov ? item.tolov.toString().trim().toLowerCase() : "";
+          // Sheetda "to'langan" qolib ketgan bo'lsa ham qabul qilingan deb hisoblaydi
+          if (holatMatni === "qabul qilingan" || holatMatni === "to'langan") {
+            qabulQilinganSoni++;
           }
           
           let shobaNomi = item.shoba ? item.shoba.toString().trim() : "Sho'basi noma'lum";
@@ -130,7 +131,7 @@
           }
         });
 
-        let tolanmaganSoni = jamiMaqolalar - tolanganSoni;
+        let qabulQilinmaganSoni = jamiMaqolalar - qabulQilinganSoni;
 
         let shobaHTML = "";
         for (const [nomi, soni] of Object.entries(shobaTaqsimoti)) {
@@ -143,12 +144,12 @@
             <p class="raqam color-blue">${jamiMaqolalar}</p>
           </div>
           <div class="stat-box">
-            <h3>✅ To'langan</h3>
-            <p class="raqam color-green">${tolanganSoni}</p>
+            <h3>✅ Qabul qilingan</h3>
+            <p class="raqam color-green">${qabulQilinganSoni}</p>
           </div>
           <div class="stat-box">
-            <h3>❌ To'lanmagan</h3>
-            <p class="raqam color-red">${tolanmaganSoni}</p>
+            <h3>❌ Qabul qilinmagan</h3>
+            <p class="raqam color-red">${qabulQilinmaganSoni}</p>
           </div>
           <div class="stat-box shoba-stats">
             <h3 style="text-align: center; color: #ffca28; margin-bottom: 10px;">Sho'balar kesimida:</h3>
@@ -159,10 +160,10 @@
         data.reverse().forEach(item => {
           let sanaMatni = item.sana ? new Date(item.sana).toLocaleDateString('uz-UZ') : '';
           
-          let tolovMatni = item.tolov ? item.tolov.toString().trim() : "To'lanmagan";
-          let isTolangan = tolovMatni.toLowerCase() === "to'langan";
-          let tolovClass = isTolangan ? "tolangan" : "tolanmagan";
-          let tolovIkonka = isTolangan ? "✅ To'langan" : "❌ To'lanmagan";
+          let holatMatni = item.tolov ? item.tolov.toString().trim().toLowerCase() : "qabul qilinmagan";
+          let isQabul = (holatMatni === "qabul qilingan" || holatMatni === "to'langan");
+          let holatClass = isQabul ? "qabul-qilingan" : "qabul-qilinmagan";
+          let holatIkonka = isQabul ? "✅ Qabul qilingan" : "❌ Qabul qilinmagan";
           
           const cardHTML = `
             <div class="card">
@@ -171,7 +172,7 @@
                 <p class="maqola">📝 "${item.maqola}"</p>
                 <div class="badge-container">
                   <span class="shoba">📌 ${item.shoba}</span>
-                  <span class="tolov ${tolovClass}">${tolovIkonka}</span>
+                  <span class="holat ${holatClass}">${holatIkonka}</span>
                 </div>
                 <span class="sana">${sanaMatni}</span>
               </div>
